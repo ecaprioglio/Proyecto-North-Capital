@@ -80,14 +80,14 @@ DATABASES = {
         'NAME': 'northcapital',
         'USER': 'nc_user',
         'PASSWORD': 'capitalsql1',
-        #'HOST': '18.235.105.2',
+        'HOST': '18.235.105.2',
         'PORT': '3306',
         'CONN_MAX_AGE': 0,
         'OPTIONS': {'connect_timeout': 20},
 
 
 
-        'HOST': '192.168.250.128',
+        #'HOST': '192.168.250.128',
     }
 }
 

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Iniciar sesión — SP500 Insight</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+<style>
+ *{font-family:'Inter',system-ui,sans-serif;box-sizing:border-box}
+ body{background:#F8FAFC}
+ .tabular{font-variant-numeric:tabular-nums}
+ a,button{transition:all .15s ease}
+ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #2563EB;outline-offset:2px}
+</style>
+</head>
+<body class="min-h-screen">
+<div class="min-h-screen flex flex-col">
+<div class="px-8 h-[64px] flex items-center"><a href="{% url 'index' %}" class="flex items-center gap-2.5 shrink-0">
+  <div class="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center">
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,14 7,9 11,12 18,5"/><polyline points="14,5 18,5 18,9"/></svg>
+  </div>
+  <span class="font-semibold text-[15px] tracking-tight text-slate-900">SP500 Insight</span>
+</a></div>
+<main class="flex-1 flex items-center justify-center px-4 pb-16"><div class="w-full max-w-[400px] bg-white border border-slate-100 rounded-2xl shadow-sm p-8">
+  <h1 class="text-[24px] font-semibold text-slate-900">Iniciar sesión</h1>
+  <p class="mt-1.5 text-[14px] text-slate-500">Accede para ver tu dashboard y tus favoritos.</p>
+  {% if error %}<p role="alert" class="mt-4 text-[13px] text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{{ error }}</p>{% endif %}
+  <form method="post" novalidate>{% csrf_token %}
+  <div class="mt-6 flex flex-col gap-4"><label class="block"><span class="text-[12px] text-slate-500">Nombre de usuario</span><input type="text" name="username" required maxlength="150" autocomplete="username" value="{{ request.POST.username }}" class="mt-1.5 w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-[14px] outline-none focus:border-blue-400"/></label><label class="block"><span class="text-[12px] text-slate-500">Contraseña</span><input type="password" name="password" required autocomplete="current-password" placeholder="••••••••" class="mt-1.5 w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-[14px] outline-none focus:border-blue-400"/></label></div>
+  <button type="submit" class="mt-6 block w-full text-center px-4 py-3 text-[14px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Entrar</button>
+  </form>
+  <p class="mt-6 text-center text-[13px] text-slate-500">¿No tienes cuenta? <a href="{% url 'registro' %}" class="text-blue-600 font-medium hover:text-blue-700">Regístrate</a></p>
+</div></main></div></body>
+</html>

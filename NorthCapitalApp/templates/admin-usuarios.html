@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Usuarios — SP500 Insight</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+<style>
+ *{font-family:'Inter',system-ui,sans-serif;box-sizing:border-box}
+ body{background:#F8FAFC}
+ .tabular{font-variant-numeric:tabular-nums}
+ a,button{transition:all .15s ease}
+ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #2563EB;outline-offset:2px}
+</style>
+</head>
+<body class="min-h-screen">
+<div class="w-full bg-slate-900 border-b border-slate-800"><div class="max-w-[1280px] mx-auto px-8 h-9 flex items-center gap-6 overflow-x-auto"><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">S&amp;P 500</span><span class="text-[11px] text-slate-200 tabular font-medium">5,322.67</span><span class="text-[10px] font-medium text-green-400">+0.80%</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">Dow Jones</span><span class="text-[11px] text-slate-200 tabular font-medium">39,127.14</span><span class="text-[10px] font-medium text-green-400">+0.54%</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">NASDAQ</span><span class="text-[11px] text-slate-200 tabular font-medium">16,742.26</span><span class="text-[10px] font-medium text-green-400">+1.12%</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">EUR/USD</span><span class="text-[11px] text-slate-200 tabular font-medium">1.0800</span><span class="text-[10px] font-medium text-red-400">-0.12%</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">VIX</span><span class="text-[11px] text-slate-200 tabular font-medium">14.31</span><span class="text-[10px] font-medium text-red-400">-2.3%</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">BTC/USD</span><span class="text-[11px] text-slate-200 tabular font-medium">$67,288</span><span class="text-[10px] font-medium text-green-400">+1.45%</span></div><div class="ml-auto shrink-0 flex items-center gap-1.5 text-[10px] text-slate-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span>Mercado abierto</div></div></div><div class="flex"><aside class="hidden lg:flex flex-col w-[232px] shrink-0 bg-slate-900 min-h-screen sticky top-0 self-start h-screen">
+  <div class="px-5 pt-5 pb-6"><a href="{% url 'index' %}" class="flex items-center gap-2.5">
+    <div class="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center text-white text-[13px] font-semibold">S</div>
+    <div class="leading-tight"><p class="text-white text-[14px] font-semibold">S&amp;P Insight</p><p class="text-slate-500 text-[10px] tracking-wider">MARKET INTELLIGENCE</p></div></a></div>
+  <nav class="px-3 flex flex-col gap-1"><a href="{% url 'panel_admin' %}" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-300 text-[14px] hover:bg-slate-800/60 hover:text-white"><span class="w-[3px] h-4"></span>Centro de control</a><a href="{% url 'admin_usuarios' %}" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-800 text-white text-[14px] font-medium"><span class="w-[3px] h-4 bg-blue-500 rounded-full"></span>Usuarios</a></nav>
+  <div class="mt-auto px-4 pb-4">
+    <div class="flex items-center gap-3 p-2"><div class="w-9 h-9 rounded-full bg-blue-600 text-white text-[12px] font-semibold flex items-center justify-center">user</div>
+      <div class="leading-tight"><p class="text-white text-[13px] font-medium">Administrador</p><p class="text-slate-400 text-[11px]">Analista del proyecto</p></div></div>
+    <p class="text-slate-500 text-[10px] tracking-wider mt-3 px-2">PANEL ADMINISTRATIVO</p></div>
+</aside><div class="flex-1 min-w-0"><header class="w-full bg-white border-b border-slate-100 sticky top-0 z-40"><div class="px-8 h-[64px] flex items-center justify-end gap-3">
+      <a href="{% url 'dashboard' %}" class="px-4 py-2 text-[13px] text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50">Vista usuario</a>
+      <a href="{% url 'panel_admin' %}" class="px-4 py-2 text-[13px] text-white bg-blue-600 rounded-lg">Administrador</a><form method="post" action="{% url 'logout' %}" class="inline">{% csrf_token %}<button type="submit" class="px-4 py-2 text-[13px] text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50">Cerrar sesión</button></form></div></header><main class="px-8 pt-8 pb-10"><a href="{% url 'panel_admin' %}" class="text-[13px] text-slate-500 hover:text-slate-800">← Volver al Centro de control</a><div class="mt-3 flex flex-wrap items-end justify-between gap-4"><h1 class="text-[30px] font-semibold text-slate-900 leading-tight">Usuarios</h1><p class="mt-2 text-[15px] text-slate-500">Consulta quién usa la plataforma y en qué estado está cada cuenta.</p></div><form method="get" class="mt-6 flex flex-wrap gap-3">
+<div class="flex items-center gap-2 border border-slate-200 bg-white rounded-lg px-3 py-2 w-[300px]"><input type="text" name="q" value="{{ q }}" placeholder="Buscar por nombre, usuario o correo..." class="text-[13px] outline-none bg-transparent w-full" /></div>
+<select name="estado" onchange="this.form.submit()" class="border border-slate-200 bg-white rounded-lg px-3 py-2 text-[13px] text-slate-700"><option value="">Todos los estados</option><option value="activo"{% if estado == 'activo' %} selected{% endif %}>Activo</option><option value="inactivo"{% if estado == 'inactivo' %} selected{% endif %}>Inactivo</option></select>
+<button type="submit" class="px-4 py-2 text-[13px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Buscar</button>
+{% if hay_filtros %}<a href="{% url 'admin_usuarios' %}" class="px-4 py-2 text-[13px] text-slate-600 border border-slate-200 bg-white rounded-lg hover:bg-slate-50">Limpiar</a>{% endif %}
+</form>
+<div class="mt-5"><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm">
+{% if filas %}<div class="overflow-x-auto"><table class="w-full min-w-[560px]"><thead><tr class="text-left border-b border-slate-100"><th class="text-[11px] text-slate-400 font-normal pb-3">Usuario</th><th class="text-[11px] text-slate-400 font-normal pb-3">Rol</th><th class="text-[11px] text-slate-400 font-normal pb-3">Última sesión</th><th class="text-[11px] text-slate-400 font-normal pb-3 text-right">Estado</th></tr></thead><tbody>
+{% for u in filas %}<tr class="border-b border-slate-50"><td class="py-3"><div class="flex items-center gap-3"><span class="w-9 h-9 rounded-lg {{ u.color }} text-slate-700 text-[11px] font-semibold flex items-center justify-center shrink-0">{{ u.iniciales }}</span><span><span class="block text-[13px] font-medium text-slate-800">{{ u.nombre }}</span>{% if u.email %}<span class="block text-[11px] text-slate-400">{{ u.email }}</span>{% endif %}</span></div></td><td class="py-3 text-[12px] text-slate-500">{{ u.rol }}</td><td class="py-3 text-[12px] text-slate-500">{{ u.ultima_sesion }}</td><td class="py-3 text-right">{% if u.activo %}<span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-medium bg-green-50 text-green-700">Activo</span>{% else %}<span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">Inactivo</span>{% endif %}</td></tr>
+{% endfor %}</tbody></table></div>
+{% else %}<p class="py-6 text-center text-[13px] text-slate-500">{% if hay_filtros %}No se encontraron usuarios con esos filtros.{% else %}Aún no hay usuarios registrados.{% endif %}</p>{% endif %}
+</div></div>
+{% if filas %}<div class="mt-3 flex flex-wrap items-center justify-between gap-3"><p class="text-[12px] text-slate-400">Mostrando {{ desde }}–{{ hasta }} de {{ total }} usuarios</p>
+{% if pagina.has_other_pages %}<div class="flex items-center gap-2"><span class="text-[12px] text-slate-400 mr-1">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+{% if pagina.has_previous %}<a href="?{% if filtros %}{{ filtros }}&{% endif %}page={{ pagina.previous_page_number }}" class="px-3 py-1.5 text-[12px] text-slate-700 border border-slate-200 bg-white rounded-lg hover:bg-slate-50">← Anterior</a>{% endif %}
+{% if pagina.has_next %}<a href="?{% if filtros %}{{ filtros }}&{% endif %}page={{ pagina.next_page_number }}" class="px-3 py-1.5 text-[12px] text-slate-700 border border-slate-200 bg-white rounded-lg hover:bg-slate-50">Siguiente →</a>{% endif %}</div>{% endif %}</div>{% endif %}</main></div></div></body>
+</html>

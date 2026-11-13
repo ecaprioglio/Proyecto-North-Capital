@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — SP500 Insight</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+<style>
+ *{font-family:'Inter',system-ui,sans-serif;box-sizing:border-box}
+ body{background:#F8FAFC}
+ .tabular{font-variant-numeric:tabular-nums}
+ a,button{transition:all .15s ease}
+ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #2563EB;outline-offset:2px}
+</style>
+</head>
+<body class="min-h-screen">
+<div class="w-full bg-slate-900 border-b border-slate-800"><div class="max-w-[1280px] mx-auto px-8 h-9 flex items-center gap-6 overflow-x-auto"><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">S&amp;P 500</span><span class="text-[11px] text-slate-200 tabular font-medium">5,322.67</span><span class="text-[10px] font-medium text-green-400">+0.80%</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">Dow Jones</span><span class="text-[11px] text-slate-200 tabular font-medium">39,127.14</span><span class="text-[10px] font-medium text-green-400">+0.54%</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">NASDAQ</span><span class="text-[11px] text-slate-200 tabular font-medium">16,742.26</span><span class="text-[10px] font-medium text-green-400">+1.12%</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">EUR/USD</span><span class="text-[11px] text-slate-200 tabular font-medium">1.0800</span><span class="text-[10px] font-medium text-red-400">-0.12%</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">VIX</span><span class="text-[11px] text-slate-200 tabular font-medium">14.31</span><span class="text-[10px] font-medium text-red-400">-2.3%</span></div><div class="flex items-center gap-2 shrink-0"><span class="text-[11px] text-slate-400">BTC/USD</span><span class="text-[11px] text-slate-200 tabular font-medium">$67,288</span><span class="text-[10px] font-medium text-green-400">+1.45%</span></div><div class="ml-auto shrink-0 flex items-center gap-1.5 text-[10px] text-slate-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span>Mercado abierto</div></div></div><div class="flex"><aside class="hidden lg:flex flex-col w-[232px] shrink-0 bg-slate-900 min-h-screen sticky top-0 self-start h-screen">
+  <div class="px-5 pt-5 pb-6"><a href="{% url 'index' %}" class="flex items-center gap-2.5">
+    <div class="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center text-white text-[13px] font-semibold">S</div>
+    <div class="leading-tight"><p class="text-white text-[14px] font-semibold">S&amp;P Insight</p><p class="text-slate-500 text-[10px] tracking-wider">MARKET INTELLIGENCE</p></div></a></div>
+  <nav class="px-3 flex flex-col gap-1"><a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-800 text-white text-[14px] font-medium"><span class="w-[3px] h-4 bg-blue-500 rounded-full"></span>Resumen</a><a href="{% url 'comparar' %}" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-300 text-[14px] hover:bg-slate-800/60 hover:text-white"><span class="w-[3px] h-4"></span>Comparar activos</a><a href="{% url 'favoritos' %}" class="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-300 text-[14px] hover:bg-slate-800/60 hover:text-white"><span class="w-[3px] h-4"></span>Favoritos</a></nav>
+  <div class="mt-auto px-4 pb-4">
+    <div class="flex items-center gap-3 p-2"><div class="w-9 h-9 rounded-full bg-blue-600 text-white text-[12px] font-semibold flex items-center justify-center">user</div>
+      <div class="leading-tight"><p class="text-white text-[13px] font-medium">Usuario 1</p><p class="text-slate-400 text-[11px]">Analista del proyecto</p></div></div>
+    <p class="text-slate-500 text-[10px] tracking-wider mt-3 px-2">PROTOTIPO ACADÉMICO</p></div>
+</aside><div class="flex-1 min-w-0"><header class="w-full bg-white border-b border-slate-100 sticky top-0 z-40">
+  <div class=" px-8 h-[64px] flex items-center gap-6">
+    <nav class="flex items-center gap-0.5 flex-1 overflow-x-auto"><a href="{% url 'index' %}" class="px-3.5 py-2 text-[13px] text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-md">Inicio</a><a href="{% url 'dashboard' %}" class="relative px-3.5 py-2 text-[13px] text-blue-600 font-medium rounded-md">Dashboard<span class="absolute bottom-0 left-3.5 right-3.5 h-[2px] bg-blue-600 rounded-full"></span></a><a href="{% url 'empresas' %}" class="px-3.5 py-2 text-[13px] text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-md">Empresas</a><a href="{% url 'sectores' %}" class="px-3.5 py-2 text-[13px] text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-md">Sectores</a></nav><div class="hidden md:flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-2 w-[240px]">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
+      <input type="text" placeholder="Buscar empresa o ticker..." class="text-[13px] text-slate-700 placeholder-slate-400 outline-none bg-transparent w-full" /></div><div class="hidden md:flex items-center gap-3 shrink-0">
+      {% if user.is_staff %}<a href="{% url 'panel_admin' %}" class="px-4 py-2 text-[13px] text-white bg-blue-600 rounded-lg hover:bg-blue-700">Administrador</a>{% endif %}{% if user.is_authenticated %}<form method="post" action="{% url 'logout' %}" class="inline">{% csrf_token %}<button type="submit" class="px-4 py-2 text-[13px] text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50">Cerrar sesión</button></form>{% else %}<a href="{% url 'login' %}" class="px-4 py-2 text-[13px] text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50">Iniciar sesión</a>{% endif %}
+      </div>
+  </div></header><main class="px-8 pt-8 pb-4"><p class="text-[12px] text-slate-500"><span class="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>Mercado al día · Datos a las 18:00 hs</p><h1 class="text-[30px] font-semibold text-slate-900 leading-tight">Pulso del mercado</h1><p class="mt-2 text-[15px] text-slate-500">Analiza tendencias, rentabilidad y riesgo antes de evaluar una inversión.</p><div class="mt-5 bg-white border border-slate-100 rounded-xl px-5 py-3 flex flex-wrap items-center gap-6"><label class="text-[11px] text-slate-400">Sector<select class="block mt-1 border border-slate-200 rounded-md px-3 py-1.5 text-[13px] text-slate-700"><option>Todos los sectores</option></select></label><div><p class="text-[11px] text-slate-400 mb-1">Periodo</p><div class="flex gap-1.5"><span class="px-3 py-1.5 text-[12px] rounded-md bg-slate-900 text-white">1A</span><span class="px-3 py-1.5 text-[12px] rounded-md text-slate-500 bg-slate-50">3A</span><span class="px-3 py-1.5 text-[12px] rounded-md text-slate-500 bg-slate-50">5A</span></div></div><label class="text-[11px] text-slate-400">Indicador<select class="block mt-1 border border-slate-200 rounded-md px-3 py-1.5 text-[13px] text-slate-700"><option>Retorno acumulado</option></select></label><div class="ml-auto text-right"><p class="text-[11px] text-slate-400">Última actualización</p><p class="text-[13px] font-medium text-slate-800">31 dic 2025 · 18:00</p></div></div><div class="mt-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm "><p class="text-[11px] tracking-wide text-slate-400">Retorno acumulado</p><p class="text-[30px] font-semibold text-slate-900 mt-1 tabular">+12,4%</p><p class="text-[12px] text-green-600 mt-1">↑ 3,1 pp vs. periodo anterior</p></div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm "><p class="text-[11px] tracking-wide text-slate-400">Volatilidad anualizada</p><p class="text-[30px] font-semibold text-slate-900 mt-1 tabular">14,8%</p><p class="text-[12px] text-amber-500 mt-1">Riesgo moderado</p></div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm "><p class="text-[11px] tracking-wide text-slate-400">Máxima caída</p><p class="text-[30px] font-semibold text-slate-900 mt-1 tabular">−8,6%</p><p class="text-[12px] text-red-500 mt-1">Recuperación en 47 días</p></div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm "><p class="text-[11px] tracking-wide text-slate-400">Sesiones positivas</p><p class="text-[30px] font-semibold text-slate-900 mt-1 tabular">58%</p><p class="text-[12px] text-violet-500 mt-1">7 de las últimas 12</p></div></div><div class="mt-5 grid grid-cols-1 xl:grid-cols-3 gap-5"><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm xl:col-span-2">
+<div class="flex flex-wrap items-start justify-between gap-3"><div><p class="text-[11px] tracking-wide text-blue-600 font-medium">Evolución temporal</p>
+<p class="text-[18px] font-semibold text-slate-900">Retorno acumulado del S&amp;P 500</p>
+<p class="text-[12px] text-slate-500 mt-1">Velas diarias del índice. Cada vela muestra apertura, máximo, mínimo y cierre.</p></div>
+{% if indice %}<div class="text-right"><p class="text-[11px] text-slate-400">Retorno del periodo</p><p id="indice-retorno" class="text-[24px] font-semibold tabular leading-tight text-slate-900">—</p></div>{% endif %}</div>
+{% if indice %}<div id="indice-rangos" class="mt-3 flex flex-wrap gap-1.5"><button type="button" data-rango="1M" class="px-3 py-1.5 text-[12px] rounded-md text-slate-500 bg-slate-50 hover:bg-slate-100">1M</button><button type="button" data-rango="3M" class="px-3 py-1.5 text-[12px] rounded-md text-slate-500 bg-slate-50 hover:bg-slate-100">3M</button><button type="button" data-rango="6M" class="px-3 py-1.5 text-[12px] rounded-md text-slate-500 bg-slate-50 hover:bg-slate-100">6M</button><button type="button" data-rango="YTD" class="px-3 py-1.5 text-[12px] rounded-md text-slate-500 bg-slate-50 hover:bg-slate-100">YTD</button><button type="button" data-rango="1A" class="px-3 py-1.5 text-[12px] rounded-md text-slate-500 bg-slate-50 hover:bg-slate-100">1A</button><button type="button" data-rango="MAX" class="px-3 py-1.5 text-[12px] rounded-md text-slate-500 bg-slate-50 hover:bg-slate-100">Máx</button></div>
+<div id="grafico-velas" class="mt-3 w-full" style="height:440px"></div>
+<p class="mt-2 text-[11px] text-slate-400">Índice equiponderado calculado con las empresas de la base de datos; no es el índice oficial. Barras inferiores: volumen total negociado.</p>
+{{ indice|json_script:"indice-data" }}
+{% else %}<p class="mt-8 mb-6 text-[13px] text-slate-500">Aún no hay precios cargados en la base de datos para dibujar el gráfico.</p>{% endif %}
+</div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm "><p class="text-[11px] tracking-wide text-blue-600 font-medium">Lectura guiada</p><p class="text-[18px] font-semibold text-slate-900 mb-4">Qué observar</p><ul class="space-y-4 text-[13px] text-slate-700"><li class="border-l-2 border-blue-500 pl-3">La tendencia general se mantiene positiva en la muestra.</li><li class="border-l-2 border-blue-500 pl-3">Tecnología combina mayor retorno con riesgo elevado.</li><li class="border-l-2 border-blue-500 pl-3">Salud presenta menor volatilidad relativa.</li></ul><p class="mt-5 text-[11px] text-slate-400 bg-slate-50 rounded-md px-3 py-2">Información ilustrativa; no constituye asesoría financiera.</p></div></div><div class="mt-5 grid grid-cols-1 xl:grid-cols-2 gap-5"><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm "><div class="flex items-start justify-between"><div><p class="text-[11px] tracking-wide text-blue-600 font-medium">Comparación</p><p class="text-[18px] font-semibold text-slate-900 mb-3">Retorno por sector</p></div><a href="{% url 'sectores' %}" class="text-[12px] text-blue-600">Ver sectores</a></div><a href="{% url 'sectores' %}" class="flex items-center gap-4 py-2 group"><span class="w-28 text-[13px] text-slate-700 group-hover:text-blue-600">Tecnología</span><span class="flex-1 h-2 rounded-full bg-slate-100"><span class="block h-2 rounded-full bg-green-500" style="width:87%"></span></span><span class="w-14 text-right text-[12px] font-medium text-green-600 tabular">+18,7%</span></a><a href="{% url 'sectores' %}" class="flex items-center gap-4 py-2 group"><span class="w-28 text-[13px] text-slate-700 group-hover:text-blue-600">Finanzas</span><span class="flex-1 h-2 rounded-full bg-slate-100"><span class="block h-2 rounded-full bg-blue-500" style="width:64%"></span></span><span class="w-14 text-right text-[12px] font-medium text-blue-600 tabular">+12,1%</span></a><a href="{% url 'sectores' %}" class="flex items-center gap-4 py-2 group"><span class="w-28 text-[13px] text-slate-700 group-hover:text-blue-600">Industriales</span><span class="flex-1 h-2 rounded-full bg-slate-100"><span class="block h-2 rounded-full bg-yellow-500" style="width:52%"></span></span><span class="w-14 text-right text-[12px] font-medium text-yellow-600 tabular">+9,8%</span></a><a href="{% url 'sectores' %}" class="flex items-center gap-4 py-2 group"><span class="w-28 text-[13px] text-slate-700 group-hover:text-blue-600">Salud</span><span class="flex-1 h-2 rounded-full bg-slate-100"><span class="block h-2 rounded-full bg-purple-500" style="width:40%"></span></span><span class="w-14 text-right text-[12px] font-medium text-purple-600 tabular">+7,2%</span></a><a href="{% url 'sectores' %}" class="flex items-center gap-4 py-2 group"><span class="w-28 text-[13px] text-slate-700 group-hover:text-blue-600">Energía</span><span class="flex-1 h-2 rounded-full bg-slate-100"><span class="block h-2 rounded-full bg-orange-500" style="width:22%"></span></span><span class="w-14 text-right text-[12px] font-medium text-orange-600 tabular">+3,9%</span></a></div><div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm "><div class="flex items-start justify-between"><div><p class="text-[11px] tracking-wide text-blue-600 font-medium">Mapa de oportunidad</p><p class="text-[18px] font-semibold text-slate-900">Riesgo vs. retorno</p></div><a href="{% url 'empresas' %}" class="text-[12px] text-blue-600">Ver empresas</a></div><div class="relative mt-4 h-[230px] border-l border-b border-slate-200"><a href="{% url 'empresa' %}" class="absolute rounded-full flex items-center justify-center text-[10px] font-semibold hover:ring-4 hover:ring-blue-100 bg-green-500 text-white" style="left:74%;top:16%;width:64px;height:64px">NVDA</a><a href="{% url 'empresa' %}" class="absolute rounded-full flex items-center justify-center text-[10px] font-semibold hover:ring-4 hover:ring-blue-100 bg-slate-900 text-white" style="left:66%;top:26%;width:56px;height:56px">MSFT</a><a href="{% url 'empresa' %}" class="absolute rounded-full flex items-center justify-center text-[10px] font-semibold hover:ring-4 hover:ring-blue-100 bg-yellow-300 text-slate-800" style="left:58%;top:40%;width:48px;height:48px">JPM</a><a href="{% url 'empresa' %}" class="absolute rounded-full flex items-center justify-center text-[10px] font-semibold hover:ring-4 hover:ring-blue-100 bg-slate-200 text-slate-700" style="left:62%;top:64%;width:44px;height:44px">XOM</a><a href="{% url 'empresa' %}" class="absolute rounded-full flex items-center justify-center text-[10px] font-semibold hover:ring-4 hover:ring-blue-100 bg-slate-200 text-slate-700" style="left:22%;top:56%;width:44px;height:44px">JNJ</a><a href="{% url 'empresa' %}" class="absolute rounded-full flex items-center justify-center text-[10px] font-semibold hover:ring-4 hover:ring-blue-100 bg-slate-200 text-slate-700" style="left:12%;top:72%;width:40px;height:40px">PG</a><span class="absolute left-2 bottom-1 text-[10px] text-slate-400">Menor riesgo</span><span class="absolute right-2 bottom-1 text-[10px] text-slate-400">Volatilidad</span></div></div></div></main><footer class=" px-8 mt-12 mb-8"><div class="border-t border-slate-100 pt-6">
+<p class="text-[11px] text-slate-400">La información presentada tiene fines exclusivamente informativos y no constituye asesoramiento financiero.</p>
+<p class="text-[11px] text-slate-400 mt-1">© 2026 SP500 Insight</p></div></footer></div></div>{% if indice %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-locale-es-latest.js"></script>
+<script>
+(function () {
+  var el = document.getElementById('grafico-velas');
+  var fuente = document.getElementById('indice-data');
+  if (!el || !fuente) return;
+  if (!window.Plotly) {
+    el.innerHTML = '<p class="text-[13px] text-slate-500 py-16 text-center">No se pudo cargar la librería de gráficos. Revisa tu conexión a internet.</p>';
+    return;
+  }
+  var d = JSON.parse(fuente.textContent);
+  var n = d.fecha.length;
+  var botones = document.querySelectorAll('[data-rango]');
+  var chip = document.getElementById('indice-retorno');
+  var MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  var DIA = 86400000;
+
+  function ms(iso) { return Date.parse(iso + 'T00:00:00Z'); }
+  function iso(t) { return new Date(t).toISOString().slice(0, 10); }
+  function sello(t) { return new Date(t).toISOString().slice(0, 19).replace('T', ' '); }
+  function fechaES(f) { return parseInt(f.slice(8, 10), 10) + ' ' + MESES[parseInt(f.slice(5, 7), 10) - 1] + ' ' + f.slice(0, 4); }
+  function pctES(x) { return (x >= 0 ? '+' : '\u2212') + Math.abs(x).toFixed(1).replace('.', ',') + '%'; }
+
+  // Días laborables sin datos (feriados): se ocultan para que no queden huecos en el eje.
+  var hay = {};
+  d.fecha.forEach(function (f) { hay[f] = true; });
+  var huecos = [];
+  for (var t = ms(d.fecha[0]); t <= ms(d.fecha[n - 1]); t += DIA) {
+    var dow = new Date(t).getUTCDay();
+    if (dow !== 0 && dow !== 6 && !hay[iso(t)]) huecos.push(iso(t));
+  }
+  var rangebreaks = [{ bounds: ['sat', 'mon'] }];
+  if (huecos.length) rangebreaks.push({ values: huecos });
+
+  function inicio(clave) {
+    if (clave === 'MAX') return 0;
+    var ult = d.fecha[n - 1], objetivo;
+    var y = +ult.slice(0, 4), m = +ult.slice(5, 7) - 1, dd = +ult.slice(8, 10);
+    if (clave === 'YTD') {
+      objetivo = y + '-01-01';
+    } else {
+      var meses = { '1M': 1, '3M': 3, '6M': 6, '1A': 12 }[clave];
+      var diasMes = new Date(Date.UTC(y, m - meses + 1, 0)).getUTCDate();   // 31 dic - 3 meses = 30 sep, no 1 oct
+      objetivo = iso(Date.UTC(y, m - meses, Math.min(dd, diasMes)));
+    }
+    for (var i = 0; i < n; i++) { if (d.fecha[i] >= objetivo) return i; }
+    return n - 1;
+  }
+
+  function dibujar(clave) {
+    var i0 = inicio(clave);
+    // Retorno acumulado: todo se expresa respecto al cierre anterior al primer día visible.
+    var base = i0 > 0 ? d.close[i0 - 1] : d.open[0];
+    function esc(v) { return (v / base - 1) * 100; }
+    var O = d.open.map(esc), H = d.high.map(esc), L = d.low.map(esc), C = d.close.map(esc);
+
+    var lo = Infinity, hi = -Infinity, vmax = 0;
+    for (var i = i0; i < n; i++) {
+      if (L[i] < lo) lo = L[i];
+      if (H[i] > hi) hi = H[i];
+      if (d.volumen[i] > vmax) vmax = d.volumen[i];
+    }
+    var pad = (hi - lo) * 0.06 || 1;
+
+    var texto = d.fecha.map(function (f, i) {
+      return '<b>' + fechaES(f) + '</b><br>Apertura: ' + pctES(O[i]) + '<br>M\u00e1ximo: ' + pctES(H[i]) +
+             '<br>M\u00ednimo: ' + pctES(L[i]) + '<br>Cierre: ' + pctES(C[i]) +
+             '<br>Empresas: ' + d.empresas[i];
+    });
+    var colores = d.close.map(function (c, i) {
+      return c >= d.open[i] ? 'rgba(34,197,94,0.55)' : 'rgba(239,68,68,0.55)';
+    });
+
+    var velas = {
+      type: 'candlestick', x: d.fecha, open: O, high: H, low: L, close: C,
+      xaxis: 'x', yaxis: 'y', text: texto, hoverinfo: 'text', whiskerwidth: 0.4, showlegend: false,
+      increasing: { line: { color: '#16A34A', width: 1 }, fillcolor: '#22C55E' },
+      decreasing: { line: { color: '#DC2626', width: 1 }, fillcolor: '#EF4444' }
+    };
+    var volumen = {
+      type: 'bar', x: d.fecha, y: d.volumen, xaxis: 'x', yaxis: 'y2', showlegend: false,
+      marker: { color: colores },
+      hovertemplate: '%{y:,.0f}<extra>Volumen</extra>'
+    };
+
+    var x0 = sello(ms(d.fecha[i0]) - DIA / 2), x1 = sello(ms(d.fecha[n - 1]) + DIA * 0.75);
+    var layout = {
+      margin: { l: 52, r: 12, t: 8, b: 32 }, showlegend: false, dragmode: 'pan', hovermode: 'x',
+      paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { family: 'Inter, system-ui, sans-serif', size: 11, color: '#64748B' },
+      xaxis: { anchor: 'y2', type: 'date', rangeslider: { visible: false }, rangebreaks: rangebreaks,
+               range: [x0, x1], showgrid: false, linecolor: '#E2E8F0' },
+      yaxis: { domain: [0.27, 1], range: [lo - pad, hi + pad], ticksuffix: '%',
+               tickformat: (hi - lo) < 4 ? '+.1f' : '+.0f', gridcolor: '#EEF2F7',
+               zeroline: true, zerolinecolor: '#CBD5E1' },
+      yaxis2: { domain: [0, 0.2], range: [0, vmax * 1.15], tickformat: '.2s', showgrid: false, nticks: 3 }
+    };
+    var config = { responsive: true, displaylogo: false, displayModeBar: 'hover', scrollZoom: false, locale: 'es',
+                   modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d'] };
+    Plotly.react(el, [velas, volumen], layout, config);
+
+    var ret = C[n - 1];
+    if (chip) {
+      chip.textContent = pctES(ret);
+      chip.className = 'text-[24px] font-semibold tabular leading-tight ' + (ret >= 0 ? 'text-green-600' : 'text-red-500');
+    }
+    for (var b = 0; b < botones.length; b++) {
+      var activo = botones[b].getAttribute('data-rango') === clave;
+      botones[b].className = 'px-3 py-1.5 text-[12px] rounded-md ' +
+        (activo ? 'bg-slate-900 text-white' : 'text-slate-500 bg-slate-50 hover:bg-slate-100');
+    }
+  }
+
+  for (var k = 0; k < botones.length; k++) {
+    (function (btn) {
+      btn.addEventListener('click', function () { dibujar(btn.getAttribute('data-rango')); });
+    })(botones[k]);
+  }
+  dibujar('1A');
+})();
+</script>
+{% endif %}
+</body>
+</html>

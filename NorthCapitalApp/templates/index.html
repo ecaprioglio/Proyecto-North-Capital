@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SP500 Insight — Analiza el mercado</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { font-family: 'Inter', system-ui, sans-serif; box-sizing: border-box; }
+    body { background: #F8FAFC; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .tabular { font-variant-numeric: tabular-nums; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .pulse { animation: pulse 2s infinite; }
+    /* Chart tooltip */
+    #chart-tooltip { pointer-events: none; position: absolute; background: white;
+      border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.08); display: none; z-index: 10; }
+    /* Modal */
+    #modal-overlay { display: none; position: fixed; inset: 0; z-index: 50;
+      background: rgba(15,23,42,.4); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; padding: 16px; }
+    #modal-overlay.open { display: flex; }
+    /* Search dropdown */
+    #search-dropdown { display: none; position: absolute; top: 100%; left: 0; right: 0;
+      margin-top: 4px; background: white; border: 1px solid #e2e8f0;
+      border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.1); z-index: 100; overflow: hidden; }
+    #search-dropdown.open { display: block; }
+    /* Smooth transitions */
+    a, button { transition: all .15s ease; }
+    .sector-bar { transition: width .5s ease; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#F8FAFC]">
+
+<!-- ═══ TICKER BAR ═══════════════════════════════════════════════════════════ -->
+<div class="w-full bg-slate-900 border-b border-slate-800">
+  <div class="max-w-[1280px] mx-auto px-8 h-9 flex items-center gap-6 overflow-x-auto no-scrollbar">
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="text-[11px] text-slate-400">S&amp;P 500</span>
+      <span id="tk-sp500" class="text-[11px] text-slate-200 tabular font-medium">5,321.41</span>
+      <span class="text-[10px] font-medium text-green-400">+0.80%</span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="text-[11px] text-slate-400">Dow Jones</span>
+      <span id="tk-dow" class="text-[11px] text-slate-200 tabular font-medium">39,127.14</span>
+      <span class="text-[10px] font-medium text-green-400">+0.54%</span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="text-[11px] text-slate-400">NASDAQ</span>
+      <span id="tk-nasdaq" class="text-[11px] text-slate-200 tabular font-medium">16,742.39</span>
+      <span class="text-[10px] font-medium text-green-400">+1.12%</span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="text-[11px] text-slate-400">EUR/USD</span>
+      <span id="tk-eur" class="text-[11px] text-slate-200 tabular font-medium">1.0842</span>
+      <span class="text-[10px] font-medium text-red-400">-0.12%</span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="text-[11px] text-slate-400">VIX</span>
+      <span id="tk-vix" class="text-[11px] text-slate-200 tabular font-medium">14.32</span>
+      <span class="text-[10px] font-medium text-red-400">-2.3%</span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <span class="text-[11px] text-slate-400">BTC/USD</span>
+      <span id="tk-btc" class="text-[11px] text-slate-200 tabular font-medium">$67,240</span>
+      <span class="text-[10px] font-medium text-green-400">+1.45%</span>
+    </div>
+    <div class="ml-auto shrink-0 flex items-center gap-1.5 text-[10px] text-slate-400">
+      <span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block pulse"></span>
+      Mercado abierto
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NAVBAR ═══════════════════════════════════════════════════════════════ -->
+<header class="w-full bg-white border-b border-slate-100 sticky top-0 z-40">
+  <div class="max-w-[1280px] mx-auto px-8 h-[64px] flex items-center gap-6">
+    <!-- Logo -->
+    <a href="{% url 'index' %}" class="flex items-center gap-2.5 shrink-0">
+      <div class="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="2,14 7,9 11,12 18,5"/><polyline points="14,5 18,5 18,9"/>
+        </svg>
+      </div>
+      <span class="font-semibold text-[15px] text-slate-900 tracking-tight">SP500 Insight</span>
+    </a>
+
+    <!-- Nav -->
+    <nav class="hidden md:flex items-center gap-0.5 flex-1">
+      <a href="{% url 'index' %}" class="relative flex items-center gap-1.5 px-3.5 py-2 text-[13px] text-blue-600 font-medium rounded-md">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L10 3l7 6.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M8 18v-7h4v7"/></svg>
+        Inicio
+        <span class="absolute bottom-0 left-3.5 right-3.5 h-[2px] bg-blue-600 rounded-full"></span>
+      </a>
+      <a href="{% url 'dashboard' %}" class="flex items-center gap-1.5 px-3.5 py-2 text-[13px] text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-md">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="12" y="2" width="6" height="6" rx="1"/><rect x="2" y="12" width="6" height="6" rx="1"/><rect x="12" y="12" width="6" height="6" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="{% url 'empresas' %}" class="flex items-center gap-1.5 px-3.5 py-2 text-[13px] text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-md">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="11" rx="1"/><path d="M6 7V5a4 4 0 018 0v2"/></svg>
+        Empresas
+      </a>
+      <a href="{% url 'sectores' %}" class="flex items-center gap-1.5 px-3.5 py-2 text-[13px] text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-md">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><path d="M10 10L10 2"/><path d="M10 10L17 14"/></svg>
+        Sectores
+      </a>
+    </nav>
+
+    <!-- Search -->
+    <div class="hidden md:block relative flex-1 max-w-[240px]" id="search-container">
+      <div id="search-box" class="flex items-center gap-2 border border-slate-200 hover:border-slate-300 rounded-lg px-3 py-2">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
+        <input id="search-input" type="text" placeholder="Buscar empresa o ticker..."
+          class="text-[13px] text-slate-700 placeholder-slate-400 outline-none bg-transparent w-full" autocomplete="off" />
+      </div>
+      <div id="search-dropdown">
+        <div class="search-item px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center gap-2">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
+          AAPL – Apple Inc.
+        </div>
+        <div class="search-item px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center gap-2">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
+          MSFT – Microsoft Corp.
+        </div>
+        <div class="search-item px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center gap-2">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
+          NVDA – NVIDIA Corp.
+        </div>
+        <div class="search-item px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center gap-2">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
+          AMZN – Amazon.com
+        </div>
+        <div class="search-item px-4 py-2.5 text-[13px] text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center gap-2">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
+          GOOGL – Alphabet Inc.
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth -->
+    <div class="hidden md:flex items-center gap-3 shrink-0">
+      <a href="{% url 'login' %}" class="px-4 py-2 text-[13px] text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50">Iniciar sesión</a>
+      <a href="{% url 'registro' %}" class="px-4 py-2 text-[13px] text-white bg-blue-600 rounded-lg hover:bg-blue-700">Registrarse</a>
+    </div>
+
+    <!-- Hamburger -->
+    <button id="hamburger" class="md:hidden text-slate-500 p-1 ml-auto">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <line x1="3" y1="6" x2="17" y2="6"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="14" x2="17" y2="14"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="hidden md:hidden border-t border-slate-100 bg-white px-8 py-4 flex flex-col gap-1">
+    <div class="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-2 mb-2">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="6"/><line x1="14" y1="14" x2="18" y2="18"/></svg>
+      <input type="text" placeholder="Buscar empresa o ticker..." class="text-[13px] text-slate-700 placeholder-slate-400 outline-none bg-transparent w-full" />
+    </div>
+    <a href="{% url 'index' %}" class="flex items-center gap-2 px-3 py-2 text-[13px] text-blue-600 bg-blue-50 font-medium rounded-md">Inicio</a>
+    <a href="{% url 'dashboard' %}" class="flex items-center gap-2 px-3 py-2 text-[13px] text-slate-500 rounded-md hover:bg-slate-50">Dashboard</a>
+    <a href="{% url 'empresas' %}" class="flex items-center gap-2 px-3 py-2 text-[13px] text-slate-500 rounded-md hover:bg-slate-50">Empresas</a>
+    <a href="{% url 'sectores' %}" class="flex items-center gap-2 px-3 py-2 text-[13px] text-slate-500 rounded-md hover:bg-slate-50">Sectores</a>
+    <div class="pt-3 flex gap-3 border-t border-slate-100 mt-2">
+      <a href="{% url 'login' %}" class="flex-1 text-center px-4 py-2 text-[13px] text-blue-600 border border-blue-200 rounded-lg">Iniciar sesión</a>
+      <a href="{% url 'registro' %}" class="flex-1 text-center px-4 py-2 text-[13px] text-white bg-blue-600 rounded-lg">Registrarse</a>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ MAIN ══════════════════════════════════════════════════════════════════ -->
+<main>
+
+  <!-- HERO -->
+  <section class="max-w-[1280px] mx-auto px-8 pt-10 pb-2">
+    <div class="flex items-start justify-between gap-8 flex-wrap">
+      <div class="max-w-[600px]">
+        <div class="inline-flex items-center gap-2 bg-green-50 border border-green-100 rounded-full px-3 py-1 mb-4">
+          <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block pulse"></span>
+          <span class="text-[12px] text-green-700 font-medium">Mercado abierto · Cierra a las 4:00 PM EDT</span>
+        </div>
+        <h1 class="text-[28px] sm:text-[32px] font-semibold text-slate-900 leading-snug">
+          Analiza el S&amp;P 500 y toma mejores decisiones de inversión
+        </h1>
+        <p class="mt-3 text-[15px] text-slate-500 leading-relaxed">
+          Datos actualizados, análisis claros y perspectivas del mercado en un solo lugar.
+        </p>
+        <div class="mt-6 flex items-center gap-3 flex-wrap">
+          <a href="{% url 'dashboard' %}" class="px-5 py-2.5 text-[14px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">Explorar el mercado</a>
+        </div>
+      </div>
+      <p class="text-[12px] text-slate-400 mt-2 shrink-0">Última actualización: 27-08-2026</p>
+    </div>
+  </section>
+
+  <!-- KPI CARDS -->
+  <section class="max-w-[1280px] mx-auto px-8 mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- S&P 500 -->
+    <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+          <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,14 7,9 11,12 18,5"/><polyline points="14,5 18,5 18,9"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] text-slate-400">S&amp;P 500 actual</p>
+          <p id="kpi-sp500" class="text-[22px] font-semibold text-slate-900 tabular leading-tight">5,321.41</p>
+          <p id="kpi-sp500-change" class="text-[12px] text-green-600 font-medium mt-0.5">+42.18 (+0.80%) ↑</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Cierre: 16 may, 4:00 PM EDT</p>
+        </div>
+      </div>
+    </div>
+    <!-- Rendimiento -->
+    <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
+          <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,14 7,9 11,12 18,5"/><polyline points="14,5 18,5 18,9"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] text-slate-400">Rendimiento del día</p>
+          <p id="kpi-perf" class="text-[22px] font-semibold text-green-600 tabular leading-tight">+0.80%</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Promedio ponderado</p>
+          <p class="text-[12px] mt-1">
+            <span id="kpi-up" class="text-green-600 font-medium">Positivas: 342</span>
+            <span class="text-slate-300 mx-1">|</span>
+            <span id="kpi-down" class="text-red-500 font-medium">Negativas: 161</span>
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- Sectores -->
+    <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
+          <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke-width="1.8" stroke-linecap="round">
+            <path d="M10 10L10 2" stroke="#7c3aed"/><path d="M10 10L17 14" stroke="#7c3aed"/><path d="M10 10L3 14" stroke="#7c3aed"/>
+            <circle cx="10" cy="10" r="8" stroke="#7c3aed" fill="none"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-[12px] text-slate-400">Sectores</p>
+          <p class="text-[22px] font-semibold text-slate-900 leading-tight">11</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Sectores del S&amp;P 500</p>
+        </div>
+      </div>
+    </div>
+    <!-- Empresas -->
+    <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+          <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="11" rx="1"/><path d="M6 7V5a4 4 0 018 0v2"/><line x1="2" y1="11" x2="18" y2="11"/></svg>
+        </div>
+        <div>
+          <p class="text-[12px] text-slate-400">Empresas analizadas</p>
+          <p class="text-[22px] font-semibold text-slate-900 leading-tight">503</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">de 503 del S&amp;P 500</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHART -->
+  <section class="max-w-[1280px] mx-auto px-8 mt-6">
+    <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm">
+      <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
+        <div class="flex items-center gap-2">
+          <p class="text-[15px] font-medium text-slate-800">Rendimiento del S&amp;P 500</p>
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#CBD5E1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><line x1="10" y1="9" x2="10" y2="14"/><circle cx="10" cy="6.5" r="0.8" fill="#CBD5E1"/></svg>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <div class="flex items-center gap-0.5" id="period-btns">
+            <button data-period="1D" class="period-btn px-2.5 py-1 text-[12px] rounded text-blue-600 font-semibold border-b-2 border-blue-600">1D</button>
+            <button data-period="1S" class="period-btn px-2.5 py-1 text-[12px] rounded text-slate-400 hover:text-slate-700">1S</button>
+            <button data-period="1M" class="period-btn px-2.5 py-1 text-[12px] rounded text-slate-400 hover:text-slate-700">1M</button>
+            <button data-period="3M" class="period-btn px-2.5 py-1 text-[12px] rounded text-slate-400 hover:text-slate-700">3M</button>
+            <button data-period="YTD" class="period-btn px-2.5 py-1 text-[12px] rounded text-slate-400 hover:text-slate-700">YTD</button>
+            <button data-period="1A" class="period-btn px-2.5 py-1 text-[12px] rounded text-slate-400 hover:text-slate-700">1A</button>
+            <button data-period="5A" class="period-btn px-2.5 py-1 text-[12px] rounded text-slate-400 hover:text-slate-700">5A</button>
+            <button data-period="Max" class="period-btn px-2.5 py-1 text-[12px] rounded text-slate-400 hover:text-slate-700">Máx.</button>
+          </div>
+          <div class="flex items-center gap-1.5 border border-slate-200 rounded-lg px-3 py-1.5 text-[12px] text-slate-500 cursor-default">
+            Área <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><polyline points="3,4 6,8 9,4"/></svg>
+          </div>
+        </div>
+      </div>
+      <p id="chart-diff" class="text-[13px] font-medium text-green-600 mb-3">+42.18 pts · +0.80%</p>
+      <div class="relative">
+        <svg id="chart-svg" width="100%" height="260" style="display:block"></svg>
+        <div id="chart-tooltip">
+          <p id="tt-label" class="text-[11px] text-slate-400"></p>
+          <p id="tt-value" class="font-semibold text-slate-800 text-[13px]"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TWO COLUMNS -->
+  <section class="max-w-[1280px] mx-auto px-8 mt-6 grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <!-- Top Companies -->
+    <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm flex flex-col">
+      <h2 class="text-[14px] font-medium text-slate-800 mb-4">Top empresas del día</h2>
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-slate-100">
+            <th class="text-left text-[11px] text-slate-400 pb-2.5 font-normal w-5">#</th>
+            <th class="text-left text-[11px] text-slate-400 pb-2.5 font-normal pl-2">Empresa</th>
+            <th class="text-right text-[11px] text-slate-400 pb-2.5 font-normal">Precio</th>
+            <th class="text-right text-[11px] text-slate-400 pb-2.5 font-normal">Cambio %</th>
+            <th class="text-right text-[11px] text-slate-400 pb-2.5 font-normal">Volumen</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-slate-50 hover:bg-slate-50">
+            <td class="py-2.5 text-[11px] text-slate-400">1</td>
+            <td class="py-2.5 pl-2"><div class="flex items-center gap-2">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="#1d1d1f"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.15-2.19 1.34-2.17 3.99.02 3.16 2.63 4.2 2.67 4.22l-.05.14c-.13.44-.52 1.65-1.2 2.81zM13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+              <span class="text-[12px] text-slate-700">Apple Inc.</span></div></td>
+            <td class="py-2.5 text-right text-[12px] text-slate-700">$192.84</td>
+            <td class="py-2.5 text-right text-[12px] font-medium text-green-600">+1.62%</td>
+            <td class="py-2.5 text-right text-[11px] text-slate-400">52.3M</td>
+          </tr>
+          <tr class="border-b border-slate-50 hover:bg-slate-50">
+            <td class="py-2.5 text-[11px] text-slate-400">2</td>
+            <td class="py-2.5 pl-2"><div class="flex items-center gap-2">
+              <svg viewBox="0 0 24 24" width="16" height="16"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg>
+              <span class="text-[12px] text-slate-700">Microsoft Corp.</span></div></td>
+            <td class="py-2.5 text-right text-[12px] text-slate-700">$416.71</td>
+            <td class="py-2.5 text-right text-[12px] font-medium text-green-600">+1.20%</td>
+            <td class="py-2.5 text-right text-[11px] text-slate-400">26.7M</td>
+          </tr>
+          <tr class="border-b border-slate-50 hover:bg-slate-50">
+            <td class="py-2.5 text-[11px] text-slate-400">3</td>
+            <td class="py-2.5 pl-2"><div class="flex items-center gap-2">
+              <svg viewBox="0 0 24 24" width="16" height="16"><rect width="24" height="24" rx="4" fill="#76B900"/><text x="12" y="17" text-anchor="middle" font-size="12" font-weight="700" fill="white" font-family="sans-serif">N</text></svg>
+              <span class="text-[12px] text-slate-700">NVIDIA Corp.</span></div></td>
+            <td class="py-2.5 text-right text-[12px] text-slate-700">$1,013.26</td>
+            <td class="py-2.5 text-right text-[12px] font-medium text-green-600">+2.45%</td>
+            <td class="py-2.5 text-right text-[11px] text-slate-400">42.1M</td>
+          </tr>
+          <tr class="border-b border-slate-50 hover:bg-slate-50">
+            <td class="py-2.5 text-[11px] text-slate-400">4</td>
+            <td class="py-2.5 pl-2"><div class="flex items-center gap-2">
+              <svg viewBox="0 0 32 32" width="16" height="16" fill="none"><text x="16" y="21" text-anchor="middle" font-size="20" font-weight="700" fill="#FF9900" font-family="sans-serif">a</text><path d="M7 24c4.5 2.5 10 3 16 1" stroke="#FF9900" stroke-width="2" stroke-linecap="round"/><path d="M23 23l3 2" stroke="#FF9900" stroke-width="2" stroke-linecap="round"/></svg>
+              <span class="text-[12px] text-slate-700">Amazon.com Inc.</span></div></td>
+            <td class="py-2.5 text-right text-[12px] text-slate-700">$186.21</td>
+            <td class="py-2.5 text-right text-[12px] font-medium text-green-600">+0.87%</td>
+            <td class="py-2.5 text-right text-[11px] text-slate-400">31.6M</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td class="py-2.5 text-[11px] text-slate-400">5</td>
+            <td class="py-2.5 pl-2"><div class="flex items-center gap-2">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              <span class="text-[12px] text-slate-700">Alphabet Inc.</span></div></td>
+            <td class="py-2.5 text-right text-[12px] text-slate-700">$165.76</td>
+            <td class="py-2.5 text-right text-[12px] font-medium text-red-500">-0.15%</td>
+            <td class="py-2.5 text-right text-[11px] text-slate-400">21.4M</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="mt-4 pt-3 border-t border-slate-100">
+        <a href="{% url 'empresas' %}" class="text-[12px] text-blue-600 hover:text-blue-700">Ver todas las empresas →</a>
+      </div>
+    </div>
+
+    <!-- Sector Performance -->
+    <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-[14px] font-medium text-slate-800">Rendimiento por sector</h2>
+        <a href="{% url 'sectores' %}" class="text-[12px] text-blue-600 hover:text-blue-700">Ver todos →</a>
+      </div>
+      <div class="flex flex-col gap-3.5 flex-1">
+        <!-- Tecnología -->
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="3" width="16" height="11" rx="2"/><line x1="7" y1="17" x2="13" y2="17"/><line x1="10" y1="14" x2="10" y2="17"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-1"><span class="text-[12px] text-slate-600">Tecnología</span><span class="text-[12px] font-medium text-green-600">+1.49%</span></div>
+            <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-green-500 sector-bar" style="width:100%"></div></div>
+          </div>
+        </div>
+        <!-- Salud -->
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="8"/><path d="M10 7v6M7 10h6"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-1"><span class="text-[12px] text-slate-600">Salud</span><span class="text-[12px] font-medium text-green-600">+0.92%</span></div>
+            <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-green-500 sector-bar" style="width:62%"></div></div>
+          </div>
+        </div>
+        <!-- Financieros -->
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"><rect x="2" y="7" width="16" height="10" rx="1"/><path d="M6 7V5a4 4 0 018 0v2"/><circle cx="10" cy="12" r="1.5"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-1"><span class="text-[12px] text-slate-600">Financieros</span><span class="text-[12px] font-medium text-green-600">+0.58%</span></div>
+            <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-green-500 sector-bar" style="width:39%"></div></div>
+          </div>
+        </div>
+        <!-- Consumo -->
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"><path d="M3 3h2l2.4 8h7.2l1.4-5H7"/><circle cx="9" cy="17" r="1.5"/><circle cx="15" cy="17" r="1.5"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-1"><span class="text-[12px] text-slate-600">Consumo discrecional</span><span class="text-[12px] font-medium text-green-600">+0.35%</span></div>
+            <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-green-500 sector-bar" style="width:24%"></div></div>
+          </div>
+        </div>
+        <!-- Energía -->
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L6 11h6l-1 7 7-9h-6l1-7z"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-1"><span class="text-[12px] text-slate-600">Energía</span><span class="text-[12px] font-medium text-red-500">-0.41%</span></div>
+            <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-red-400 sector-bar" style="width:28%"></div></div>
+          </div>
+        </div>
+        <!-- Materiales -->
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"><polygon points="10,2 18,7 18,13 10,18 2,13 2,7"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between mb-1"><span class="text-[12px] text-slate-600">Materiales</span><span class="text-[12px] font-medium text-red-500">-0.79%</span></div>
+            <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-red-400 sector-bar" style="width:53%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMULATOR TEASER -->
+  <section class="max-w-[1280px] mx-auto px-8 mt-6">
+    <div class="bg-white border border-slate-100 rounded-xl p-6 shadow-sm flex items-center justify-between gap-6 flex-wrap">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 shrink-0">
+          <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="14" height="16" rx="2"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="11" x2="9" y2="11"/><line x1="11" y1="11" x2="13" y2="11"/><line x1="7" y1="14" x2="9" y2="14"/><line x1="11" y1="14" x2="13" y2="14"/></svg>
+        </div>
+        <div>
+          <h2 class="text-[15px] font-medium text-slate-800">Simulador de inversión</h2>
+          <p class="text-[13px] text-slate-400 mt-0.5">¿Cuánto habrías ganado invirtiendo $10,000 en el S&amp;P 500 hace 5 años?
+            <span class="text-green-600 font-medium ml-1">+$25,977</span>
+          </p>
+        </div>
+      </div>
+      <button id="open-modal" class="px-5 py-2.5 text-[13px] font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shrink-0">
+        Abrir simulador
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══ FOOTER ════════════════════════════════════════════════════════════════ -->
+<footer class="max-w-[1280px] mx-auto px-8 mt-12 mb-8">
+  <div class="border-t border-slate-100 pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <div class="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
+          <svg width="11" height="11" viewBox="0 0 20 20" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,14 7,9 11,12 18,5"/><polyline points="14,5 18,5 18,9"/></svg>
+        </div>
+        <span class="text-[13px] font-medium text-slate-700">SP500 Insight</span>
+      </div>
+      <p class="text-[11px] text-slate-400 max-w-[400px] leading-relaxed">La información presentada tiene fines exclusivamente informativos y no constituye asesoramiento financiero.</p>
+      <p class="text-[11px] text-slate-400 mt-1">© 2026 SP500 Insight</p>
+    </div>
+    <div class="flex items-center gap-6">
+    </div>
+  </div>
+</footer>
+
+<!-- ═══ MODAL ══════════════════════════════════════════════════════════════════ -->
+<div id="modal-overlay">
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-[640px] p-6">
+    <div class="flex items-center justify-between mb-5">
+      <div>
+        <h3 class="text-[16px] font-semibold text-slate-900">Simulador de inversión</h3>
+        <p class="text-[12px] text-slate-400 mt-0.5">Basado en el rendimiento histórico del S&amp;P 500</p>
+      </div>
+      <button id="close-modal" class="text-slate-400 hover:text-slate-700 p-1">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="5" y1="5" x2="15" y2="15"/><line x1="15" y1="5" x2="5" y2="15"/></svg>
+      </button>
+    </div>
+    <!-- Mode toggle -->
+    <div class="flex gap-1 bg-slate-50 rounded-lg p-1 w-fit mb-5">
+      <button id="mode-past" class="mode-btn px-4 py-1.5 text-[12px] rounded-md bg-white text-slate-800 shadow-sm border border-slate-100">Rendimiento histórico</button>
+      <button id="mode-future" class="mode-btn px-4 py-1.5 text-[12px] rounded-md text-slate-400 hover:text-slate-700">Proyección futura</button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div class="flex flex-col gap-4">
+        <div>
+          <label class="block text-[12px] text-slate-400 mb-1.5">Monto a invertir (USD)</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[13px]">$</span>
+            <input id="sim-amount" type="number" value="10000" min="0"
+              class="w-full pl-7 pr-4 py-2.5 border border-slate-200 rounded-lg text-[14px] text-slate-800 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-50" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-[12px] text-slate-400 mb-1.5" id="years-label">Período histórico</label>
+          <div class="grid grid-cols-5 gap-1.5">
+            <button data-y="1" class="year-btn py-2 text-[12px] rounded-lg border border-slate-100 text-slate-500 hover:border-slate-200">1A</button>
+            <button data-y="3" class="year-btn py-2 text-[12px] rounded-lg border border-slate-100 text-slate-500 hover:border-slate-200">3A</button>
+            <button data-y="5" class="year-btn py-2 text-[12px] rounded-lg border border-blue-200 bg-blue-50 text-blue-600">5A</button>
+            <button data-y="10" class="year-btn py-2 text-[12px] rounded-lg border border-slate-100 text-slate-500 hover:border-slate-200">10A</button>
+            <button data-y="20" class="year-btn py-2 text-[12px] rounded-lg border border-slate-100 text-slate-500 hover:border-slate-200">20A</button>
+          </div>
+        </div>
+        <p id="sim-disclaimer" class="text-[11px] text-slate-300 leading-relaxed">Basado en el valor real del S&P 500 hace 5 años. Los rendimientos pasados no garantizan resultados futuros.</p>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-5 border border-slate-100">
+        <p id="sim-subtitle" class="text-[12px] text-slate-400 mb-1">Si hubieras invertido hace 5 años</p>
+        <p id="sim-result" class="text-[28px] font-semibold text-slate-900 tracking-tight leading-none mb-3">$35,977</p>
+        <div class="flex flex-col gap-2 pt-4 border-t border-slate-200">
+          <div class="flex justify-between"><span class="text-[12px] text-slate-400">Capital inicial</span><span id="sim-capital" class="text-[13px] text-slate-600">$10,000</span></div>
+          <div class="flex justify-between"><span class="text-[12px] text-slate-400">Ganancia estimada</span><span id="sim-gain" class="text-[13px] font-medium text-green-600">+$25,977</span></div>
+          <div class="flex justify-between"><span class="text-[12px] text-slate-400">Rendimiento total</span><span id="sim-pct" class="text-[13px] font-medium text-green-600">+259.8%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ JAVASCRIPT ══════════════════════════════════════════════════════════════ -->
+<script>
+// ─── Chart Data ───────────────────────────────────────────────────────────────
+const CHART_DATA = {
+  "1D":  [{l:"9:30",v:5279},{l:"9:45",v:5282},{l:"10:00",v:5291},{l:"10:15",v:5287},{l:"10:30",v:5298},{l:"10:45",v:5312},{l:"11:00",v:5318},{l:"11:15",v:5329},{l:"11:30",v:5324},{l:"11:45",v:5335},{l:"12:00",v:5341},{l:"12:15",v:5337},{l:"12:30",v:5348},{l:"12:45",v:5352},{l:"13:00",v:5344},{l:"13:15",v:5333},{l:"13:30",v:5321},{l:"13:45",v:5308},{l:"14:00",v:5291},{l:"14:15",v:5278},{l:"14:30",v:5265},{l:"14:45",v:5272},{l:"15:00",v:5284},{l:"15:15",v:5295},{l:"15:30",v:5301},{l:"15:45",v:5309},{l:"16:00",v:5321}],
+  "1S":  [{l:"Lun",v:5240},{l:"Mar",v:5258},{l:"Mié",v:5271},{l:"Jue",v:5263},{l:"Vie",v:5279},{l:"Hoy",v:5321}],
+  "1M":  [{l:"1",v:5102},{l:"5",v:5135},{l:"9",v:5148},{l:"13",v:5158},{l:"17",v:5190},{l:"21",v:5204},{l:"27",v:5321}],
+  "3M":  [{l:"S1",v:4910},{l:"S4",v:4990},{l:"S7",v:5021},{l:"S10",v:5102},{l:"S16",v:5190},{l:"S20",v:5278},{l:"S23",v:5321}],
+  "YTD": [{l:"Ene",v:4712},{l:"Feb",v:4780},{l:"Mar",v:4850},{l:"Abr",v:4940},{l:"May",v:5020},{l:"Jun",v:5110},{l:"Jul",v:5220},{l:"Ago",v:5321}],
+  "1A":  [{l:"Sep",v:4430},{l:"Nov",v:4620},{l:"Ene",v:4712},{l:"Mar",v:4850},{l:"May",v:5020},{l:"Jul",v:5220},{l:"Ago",v:5321}],
+  "5A":  [{l:"2021",v:3220},{l:"2022",v:3890},{l:"2022b",v:3540},{l:"2023",v:4210},{l:"2024",v:4580},{l:"2025",v:5050},{l:"2026",v:5321}],
+  "Max": [{l:"2000",v:1527},{l:"2003",v:800},{l:"2009",v:676},{l:"2013",v:1848},{l:"2016",v:2279},{l:"2020",v:3386},{l:"2022",v:3840},{l:"2026",v:5321}],
+};
+
+let currentPeriod = "1D";
+
+function drawChart(period) {
+  const data = CHART_DATA[period];
+  const svg = document.getElementById('chart-svg');
+  const W = svg.clientWidth || 800;
+  const H = 260, pL = 56, pR = 12, pT = 12, pB = 32;
+  const cW = W - pL - pR, cH = H - pT - pB;
+
+  const vals = data.map(d => d.v);
+  const minV = Math.min(...vals), maxV = Math.max(...vals);
+  const range = maxV - minV || 1, pad = range * 0.15;
+
+  const toX = i => pL + (i / (data.length - 1)) * cW;
+  const toY = v => pT + cH - ((v - (minV - pad)) / (range + 2 * pad)) * cH;
+
+  const pathD = data.map((d, i) => `${i===0?'M':'L'} ${toX(i).toFixed(1)} ${toY(d.v).toFixed(1)}`).join(' ');
+  const areaD = `${pathD} L ${toX(data.length-1).toFixed(1)} ${(pT+cH).toFixed(1)} L ${pL} ${(pT+cH).toFixed(1)} Z`;
+
+  // Y ticks
+  const yTicks = Array.from({length:5}, (_,i) => {
+    const v = minV - pad + ((range + 2*pad)/(4)) * i;
+    return {v, y: toY(v)};
+  });
+
+  // X labels
+  const step = Math.max(1, Math.floor(data.length / 6));
+  const xLabels = data.filter((_, i) => i % step === 0 || i === data.length - 1);
+
+  const gradId = 'agrad' + period;
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#2563EB" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="#2563EB" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    ${yTicks.map(({y}) => `<line x1="${pL}" y1="${y.toFixed(1)}" x2="${pL+cW}" y2="${y.toFixed(1)}" stroke="#F1F5F9" stroke-width="1"/>`).join('')}
+    <path d="${areaD}" fill="url(#${gradId})"/>
+    <path id="chart-line" d="${pathD}" fill="none" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+      stroke-dasharray="9999" stroke-dashoffset="9999" style="transition:stroke-dashoffset 0.85s cubic-bezier(0.4,0,0.2,1)"/>
+    <line id="crosshair" x1="0" y1="${pT}" x2="0" y2="${pT+cH}" stroke="#CBD5E1" stroke-width="1" stroke-dasharray="3 3" style="display:none"/>
+    <circle id="dot" cx="0" cy="0" r="4" fill="#2563EB" stroke="white" stroke-width="2" style="display:none"/>
+    ${yTicks.map(({v,y}) => `<text x="${pL-6}" y="${y+4}" text-anchor="end" font-size="11" fill="#94A3B8" font-family="Inter,sans-serif">${v.toFixed(0)}</text>`).join('')}
+    ${xLabels.map(d => { const i=data.indexOf(d); return `<text x="${toX(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="11" fill="#94A3B8" font-family="Inter,sans-serif">${d.l}</text>`; }).join('')}
+  `;
+
+  // Animate line
+  requestAnimationFrame(() => {
+    const line = document.getElementById('chart-line');
+    if (line) {
+      const len = line.getTotalLength ? line.getTotalLength() : 9999;
+      line.style.strokeDasharray = len;
+      line.style.strokeDashoffset = len;
+      requestAnimationFrame(() => { line.style.strokeDashoffset = 0; });
+    }
+  });
+
+  // Diff
+  const diff = data[data.length-1].v - data[0].v;
+  const pct = ((diff / data[0].v) * 100).toFixed(2);
+  const diffEl = document.getElementById('chart-diff');
+  diffEl.textContent = `${diff>=0?'+':''}${diff.toFixed(2)} pts · ${diff>=0?'+':''}${pct}%`;
+  diffEl.className = `text-[13px] font-medium mb-3 ${diff>=0?'text-green-600':'text-red-500'}`;
+
+  // Hover
+  svg.onmousemove = (e) => {
+    const rect = svg.getBoundingClientRect();
+    const mx = e.clientX - rect.left - pL;
+    if (mx < 0 || mx > cW) { hideTooltip(); return; }
+    const idx = Math.max(0, Math.min(data.length-1, Math.round((mx/cW)*(data.length-1))));
+    const d = data[idx];
+    const x = toX(idx), y = toY(d.v);
+    document.getElementById('crosshair').setAttribute('x1', x);
+    document.getElementById('crosshair').setAttribute('x2', x);
+    document.getElementById('crosshair').style.display = '';
+    document.getElementById('dot').setAttribute('cx', x);
+    document.getElementById('dot').setAttribute('cy', y);
+    document.getElementById('dot').style.display = '';
+    const tt = document.getElementById('chart-tooltip');
+    document.getElementById('tt-label').textContent = d.l;
+    document.getElementById('tt-value').textContent = d.v.toLocaleString('es-ES');
+    const svgRect = svg.getBoundingClientRect();
+    tt.style.left = Math.min(x + 14, W - 130) + 'px';
+    tt.style.top = Math.max(y - 14, 6) + 'px';
+    tt.style.display = 'block';
+  };
+  svg.onmouseleave = hideTooltip;
+}
+
+function hideTooltip() {
+  const tt = document.getElementById('chart-tooltip');
+  const ch = document.getElementById('crosshair');
+  const dot = document.getElementById('dot');
+  if (tt) tt.style.display = 'none';
+  if (ch) ch.style.display = 'none';
+  if (dot) dot.style.display = 'none';
+}
+
+// Period buttons
+document.querySelectorAll('.period-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.period-btn').forEach(b => {
+      b.className = 'period-btn px-2.5 py-1 text-[12px] rounded text-slate-400 hover:text-slate-700';
+    });
+    btn.className = 'period-btn px-2.5 py-1 text-[12px] rounded text-blue-600 font-semibold border-b-2 border-blue-600';
+    currentPeriod = btn.dataset.period;
+    drawChart(currentPeriod);
+  });
+});
+
+// Draw on load + resize
+drawChart('1D');
+window.addEventListener('resize', () => drawChart(currentPeriod));
+
+// ─── Live tickers ─────────────────────────────────────────────────────────────
+let liveVals = { sp500: 5321.41, dow: 39127.14, nasdaq: 16742.39, eur: 1.0842, vix: 14.32, btc: 67240 };
+
+setInterval(() => {
+  liveVals.sp500 = +(liveVals.sp500 + (Math.random()-.48)*1.8).toFixed(2);
+  liveVals.dow = +(liveVals.dow + (Math.random()-.48)*4.2).toFixed(2);
+  liveVals.nasdaq = +(liveVals.nasdaq + (Math.random()-.48)*3.1).toFixed(2);
+  liveVals.eur = +(liveVals.eur + (Math.random()-.48)*0.0008).toFixed(4);
+  liveVals.vix = +(liveVals.vix + (Math.random()-.48)*0.12).toFixed(2);
+  liveVals.btc = Math.round(liveVals.btc + (Math.random()-.48)*80);
+
+  document.getElementById('tk-sp500').textContent = liveVals.sp500.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('tk-dow').textContent = liveVals.dow.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('tk-nasdaq').textContent = liveVals.nasdaq.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('tk-eur').textContent = liveVals.eur.toFixed(4);
+  document.getElementById('tk-vix').textContent = liveVals.vix.toFixed(2);
+  document.getElementById('tk-btc').textContent = '$' + liveVals.btc.toLocaleString('es-ES');
+
+  // KPI
+  document.getElementById('kpi-sp500').textContent = liveVals.sp500.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const perf = +((liveVals.sp500 - 5279)/5279*100).toFixed(2);
+  const diff = +(liveVals.sp500 - 5279).toFixed(2);
+  document.getElementById('kpi-sp500-change').textContent = `${diff>=0?'+':''}${diff.toFixed(2)} (${perf>=0?'+':''}${perf}%) ${perf>=0?'↑':'↓'}`;
+  document.getElementById('kpi-sp500-change').className = `text-[12px] font-medium mt-0.5 ${perf>=0?'text-green-600':'text-red-500'}`;
+  document.getElementById('kpi-perf').textContent = `${perf>=0?'+':''}${perf}%`;
+  document.getElementById('kpi-perf').className = `text-[22px] font-semibold tabular leading-tight ${perf>=0?'text-green-600':'text-red-500'}`;
+  const rising = Math.round(342 + (diff>=0?1:-1)*Math.random()*3);
+  document.getElementById('kpi-up').textContent = `Positivas: ${rising}`;
+  document.getElementById('kpi-down').textContent = `Negativas: ${503-rising}`;
+}, 2800);
+
+// ─── Hamburger ────────────────────────────────────────────────────────────────
+document.getElementById('hamburger').addEventListener('click', () => {
+  const m = document.getElementById('mobile-menu');
+  m.classList.toggle('hidden');
+});
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+const searchInput = document.getElementById('search-input');
+const dropdown = document.getElementById('search-dropdown');
+const allItems = Array.from(document.querySelectorAll('.search-item'));
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  if (!q) { dropdown.classList.remove('open'); return; }
+  let any = false;
+  allItems.forEach(item => {
+    const show = item.textContent.toLowerCase().includes(q);
+    item.style.display = show ? '' : 'none';
+    if (show) any = true;
+  });
+  dropdown.classList.toggle('open', any);
+});
+searchInput.addEventListener('blur', () => setTimeout(() => dropdown.classList.remove('open'), 150));
+searchInput.addEventListener('focus', () => { if (searchInput.value) dropdown.classList.add('open'); });
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+const HIST = { "1":{sv:4938,label:"hace 1 año"}, "3":{sv:3839,label:"hace 3 años"}, "5":{sv:2954,label:"hace 5 años"}, "10":{sv:1879,label:"hace 10 años"}, "20":{sv:1320,label:"hace 20 años"} };
+const RATES = { "1":0.078, "3":0.082, "5":0.085, "10":0.09, "20":0.092 };
+const SP500_NOW = 5321;
+
+let simMode = 'past';
+let simYears = '5';
+
+function updateSimulator() {
+  const raw = parseFloat(document.getElementById('sim-amount').value) || 0;
+  const fmt = n => n.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
+
+  let result, gain, subtitle;
+  if (simMode === 'past') {
+    result = raw * (SP500_NOW / HIST[simYears].sv);
+    subtitle = `Si hubieras invertido ${HIST[simYears].label}`;
+    document.getElementById('sim-disclaimer').textContent = `Basado en el valor real del S&P 500 ${HIST[simYears].label}. Los rendimientos pasados no garantizan resultados futuros.`;
+  } else {
+    result = raw * Math.pow(1 + RATES[simYears], parseFloat(simYears));
+    subtitle = `En ${simYears} años, tu inversión sería`;
+    document.getElementById('sim-disclaimer').textContent = `Proyección usando la tasa promedio histórica (~${(RATES[simYears]*100).toFixed(1)}% anual). Solo referencial.`;
+  }
+  gain = result - raw;
+  const pct = raw > 0 ? ((gain/raw)*100).toFixed(1) : '0.0';
+
+  document.getElementById('sim-subtitle').textContent = subtitle;
+  document.getElementById('sim-result').textContent = raw > 0 ? fmt(result) : '—';
+  document.getElementById('sim-capital').textContent = fmt(raw);
+  document.getElementById('sim-gain').textContent = `${gain>=0?'+':''}${fmt(gain)}`;
+  document.getElementById('sim-gain').className = `text-[13px] font-medium ${gain>=0?'text-green-600':'text-red-500'}`;
+  document.getElementById('sim-pct').textContent = `${gain>=0?'+':''}${pct}%`;
+  document.getElementById('sim-pct').className = `text-[13px] font-medium ${gain>=0?'text-green-600':'text-red-500'}`;
+}
+
+document.getElementById('open-modal').addEventListener('click', () => {
+  document.getElementById('modal-overlay').classList.add('open');
+  updateSimulator();
+});
+document.getElementById('close-modal').addEventListener('click', () => {
+  document.getElementById('modal-overlay').classList.remove('open');
+});
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+});
+
+document.getElementById('mode-past').addEventListener('click', () => {
+  simMode = 'past';
+  document.getElementById('mode-past').className = 'mode-btn px-4 py-1.5 text-[12px] rounded-md bg-white text-slate-800 shadow-sm border border-slate-100';
+  document.getElementById('mode-future').className = 'mode-btn px-4 py-1.5 text-[12px] rounded-md text-slate-400 hover:text-slate-700';
+  document.getElementById('years-label').textContent = 'Período histórico';
+  updateSimulator();
+});
+document.getElementById('mode-future').addEventListener('click', () => {
+  simMode = 'future';
+  document.getElementById('mode-future').className = 'mode-btn px-4 py-1.5 text-[12px] rounded-md bg-white text-slate-800 shadow-sm border border-slate-100';
+  document.getElementById('mode-past').className = 'mode-btn px-4 py-1.5 text-[12px] rounded-md text-slate-400 hover:text-slate-700';
+  document.getElementById('years-label').textContent = 'Años de inversión';
+  updateSimulator();
+});
+
+document.querySelectorAll('.year-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    simYears = btn.dataset.y;
+    document.querySelectorAll('.year-btn').forEach(b => {
+      b.className = 'year-btn py-2 text-[12px] rounded-lg border border-slate-100 text-slate-500 hover:border-slate-200';
+    });
+    btn.className = 'year-btn py-2 text-[12px] rounded-lg border border-blue-200 bg-blue-50 text-blue-600';
+    updateSimulator();
+  });
+});
+
+document.getElementById('sim-amount').addEventListener('input', updateSimulator);
+</script>
+<script>
+  // Navegación: filas de empresas y resultados del buscador llevan al detalle
+  document.querySelectorAll('tbody tr').forEach(function(tr){tr.style.cursor='pointer';tr.addEventListener('click',function(){location.href='{% url 'empresa' %}'})});
+  document.querySelectorAll('.search-item').forEach(function(el){el.addEventListener('click',function(){location.href='{% url 'empresa' %}'})});
+</script>
+</body>
+</html>
